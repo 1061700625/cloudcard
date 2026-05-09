@@ -20,7 +20,7 @@ xfcloudcard - 云控卡密验证客户端库
 
 from .client import CardClient, require_card
 
-__version__ = "1.0.2"
+__version__ = "1.0.4"
 __author__ = "songxf"
 __license__ = "MIT"
 

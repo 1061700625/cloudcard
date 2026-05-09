@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xfcloudcard"
-version = "1.0.2"
+version = "1.0.4"
 description = "云控卡密验证客户端库 - 支持 AES+HMAC 加密通信、心跳保活、离线上报"
 readme = "README.md"
 license = "MIT"

@@ -30,8 +30,8 @@ import signal
 import threading
 from typing import Optional, Callable, Any
 
-from crypto import CryptoManager
-from device_info import get_device_sn, get_ip_address
+from .crypto import CryptoManager
+from .device_info import get_device_sn, get_ip_address
 
 
 # 默认配置（可通过环境变量或参数覆盖）
@@ -228,6 +228,7 @@ class CardClient:
                     else:
                         remaining = resp_data.get('remaining_seconds')
                         expire_minutes = resp_data.get('expire_minutes', 0)
+                        print(f"[DEBUG] raw: remaining={remaining}, expire_minutes={expire_minutes}")
                         valid_str = _format_minutes(expire_minutes) if expire_minutes else ""
                         if remaining is not None and remaining <= 0:
                             if self._on_expire:
@@ -237,18 +238,15 @@ class CardClient:
                                     pass
                             self._heartbeat_running = False
                             break
-                        # 首次成功时打印有效期
                         if not hasattr(self, '_hb_printed'):
                             if valid_str:
                                 print(f"[心跳] 卡密有效期: {valid_str}，剩余: {_format_time(remaining)}")
                             else:
                                 print(f"[心跳] 剩余: {_format_time(remaining)}")
                             self._hb_printed = True
-                        # 剩余不足5分钟时每次提醒
                         elif remaining is not None and remaining < 300:
                             print(f"[心跳] ⚠️ 即将过期，剩余: {_format_time(remaining)}")
                 else:
-                    # 打印详细错误信息便于排查
                     try:
                         err_detail = resp.json().get('detail', resp.text[:200])
                     except Exception:
