@@ -2,6 +2,26 @@
 
 基于 FastAPI + SQLite 的卡密验证系统，支持 AES-256-CBC + HMAC-SHA256 加密通信、心跳保活、过期回调、离线上报。
 
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/fb07b615-4133-4187-8c88-7d107dec0fd9" alt="" width="800"/>
+</p>
+
+---
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/00a27d7c-50b2-499a-8e48-e89632aab7d9" alt="" width="800"/>
+</p>
+
+---
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/9e19d2f3-1e71-4f65-8645-731bc70686dd" alt="" width="800"/>
+</p>
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/4f357cc8-3542-47d3-934a-f4e8acadb3be" alt="" width="800"/>
+</p>
+
 ## 目录结构
 
 ```
