@@ -30,6 +30,11 @@ python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
 
 管理后台：http://localhost:8000/admin
 
+> 生成密码：
+> ```bash
+> python3 -c "import secrets; print(secrets.token_hex(16))"
+> ```
+
 ## 客户端使用方式
 
 ### 方式一：with 上下文管理器 —— 传入 card_key（推荐）
