@@ -495,20 +495,75 @@ async function doGenerate() {
 }
 
 function copyCardKey(btn, key) {
-  navigator.clipboard.writeText(key).then(() => {
+  function doCopy() {
+    const ta = document.createElement('textarea');
+    ta.value = key;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(key).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = '已复制 ✓';
+      setTimeout(() => btn.textContent = orig, 1500);
+    }).catch(() => {
+      // fallback for non-https
+      if (doCopy()) {
+        const orig = btn.textContent;
+        btn.textContent = '已复制 ✓';
+        setTimeout(() => btn.textContent = orig, 1500);
+      } else {
+        toast('复制失败，请手动复制', 'error');
+      }
+    });
+  } else if (doCopy()) {
     const orig = btn.textContent;
     btn.textContent = '已复制 ✓';
     setTimeout(() => btn.textContent = orig, 1500);
-  });
+  } else {
+    toast('复制失败，请手动复制', 'error');
+  }
 }
 
 function copyAllCards(btn) {
   const keys = Array.from(document.querySelectorAll('#genResult .card-item code')).map(e => e.textContent).join('\n');
-  navigator.clipboard.writeText(keys).then(() => {
+  function doCopy() {
+    const ta = document.createElement('textarea');
+    ta.value = keys;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(keys).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = '已复制全部 ✓';
+      setTimeout(() => btn.textContent = orig, 1500);
+    }).catch(() => {
+      if (doCopy()) {
+        const orig = btn.textContent;
+        btn.textContent = '已复制全部 ✓';
+        setTimeout(() => btn.textContent = orig, 1500);
+      } else {
+        toast('复制失败，请手动复制', 'error');
+      }
+    });
+  } else if (doCopy()) {
     const orig = btn.textContent;
     btn.textContent = '已复制全部 ✓';
     setTimeout(() => btn.textContent = orig, 1500);
-  });
+  } else {
+    toast('复制失败，请手动复制', 'error');
+  }
 }
 
 async function doImport() {

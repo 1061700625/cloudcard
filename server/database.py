@@ -313,8 +313,13 @@ class Database:
         conn.close()
         if not row:
             return {"remaining_seconds": 0, "expire_minutes": 0}
-        remaining = max(0, row['expire_time'] - int(time.time()))
+        now_ts = int(time.time())
+        from datetime import datetime
+        now_dt = int(datetime.now().timestamp())
+        remaining = max(0, row['expire_time'] - now_ts)
         expire_minutes = row['expire_minutes'] or 0
+        print(f"[DB DEBUG] expire_time={row['expire_time']}, now_ts={now_ts}, now_dt={now_dt}, remaining={remaining}", flush=True)
+        return {"remaining_seconds": remaining, "expire_minutes": expire_minutes}
         return {"remaining_seconds": remaining, "expire_minutes": expire_minutes}
 
     def mark_stale_devices_offline(self, timeout_seconds: int = 120) -> int:
