@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sqlite3, time
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
-from config import DATABASE_PATH, CARD_KEY_PREFIX, CARD_KEY_SEPARATOR, CARD_KEY_LENGTH, VERIFY_INTERVAL_SECONDS
+from config import DATABASE_PATH, CARD_KEY_PREFIX, CARD_KEY_SEPARATOR, CARD_KEY_LENGTH, VERIFY_INTERVAL_SECONDS, HEARTBEAT_OFFLINE_TIMEOUT
 
 
 class Database:
@@ -240,17 +240,32 @@ class Database:
         return ok
 
     def list_cards(self, status=None, limit=100, offset=0) -> List[Dict[str, Any]]:
+        # 先清理超时离线的设备，保证 is_online 数据新鲜
+        self.mark_stale_devices_offline(HEARTBEAT_OFFLINE_TIMEOUT)
         conn = self.get_connection()
         cursor = conn.cursor()
+        # LEFT JOIN devices 获取在线状态
+        sql = '''SELECT c.*,
+                    MAX(d.is_online) as is_online
+               FROM cards c
+               LEFT JOIN devices d ON c.card_key = d.card_key
+               '''
         if status is not None:
-            cursor.execute('SELECT * FROM cards WHERE status = ? ORDER BY id DESC LIMIT ? OFFSET ?',
-                         (status, limit, offset))
+            sql += 'WHERE c.status = ? '
+            sql += 'GROUP BY c.id ORDER BY c.id DESC LIMIT ? OFFSET ?'
+            cursor.execute(sql, (status, limit, offset))
         else:
-            cursor.execute('SELECT * FROM cards ORDER BY id DESC LIMIT ? OFFSET ?',
-                         (limit, offset))
+            sql += 'GROUP BY c.id ORDER BY c.id DESC LIMIT ? OFFSET ?'
+            cursor.execute(sql, (limit, offset))
         rows = cursor.fetchall()
+        result = []
+        for r in rows:
+            d = dict(r)
+            # is_online: 1=在线, 0或None=离线
+            d['is_online'] = 1 if d.get('is_online') else 0
+            result.append(d)
         conn.close()
-        return [dict(r) for r in rows]
+        return result
 
     def delete_card(self, card_key: str) -> bool:
         conn = self.get_connection()
@@ -318,8 +333,8 @@ class Database:
         now_dt = int(datetime.now().timestamp())
         remaining = max(0, row['expire_time'] - now_ts)
         expire_minutes = row['expire_minutes'] or 0
-        print(f"[DB DEBUG] expire_time={row['expire_time']}, now_ts={now_ts}, now_dt={now_dt}, remaining={remaining}", flush=True)
-        return {"remaining_seconds": remaining, "expire_minutes": expire_minutes}
+        remaining = max(0, row['expire_time'] - now_ts)
+        expire_minutes = row['expire_minutes'] or 0
         return {"remaining_seconds": remaining, "expire_minutes": expire_minutes}
 
     def mark_stale_devices_offline(self, timeout_seconds: int = 120) -> int:
@@ -352,7 +367,8 @@ class Database:
                SET is_online = 0
                WHERE is_online = 1
                  AND (last_heartbeat IS NULL
-                      OR datetime('now') > datetime(last_heartbeat, '120 seconds'))'''
+                      OR datetime('now') > datetime(last_heartbeat, ?))''',
+            (f'{HEARTBEAT_OFFLINE_TIMEOUT} seconds',)
         )
         cursor.execute(
             '''SELECT d.*, c.card_key, c.status as card_status, c.expire_time

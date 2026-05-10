@@ -17,6 +17,7 @@ from config import (
     API_HOST, API_PORT, API_DEBUG,
     ADMIN_API_KEY, DEFAULT_KEY,
     IP_WHITELIST_ENABLED, IP_WHITELIST,
+    HEARTBEAT_OFFLINE_TIMEOUT,
 )
 from database import Database
 from crypto import CryptoManager
@@ -464,7 +465,7 @@ async def client_offline(req: OfflineRequest):
 async def get_online_devices(admin_key: str = Query(...)):
     if admin_key != ADMIN_API_KEY:
         raise HTTPException(status_code=403, detail="管理员权限验证失败")
-    db.mark_stale_devices_offline(120)
+    db.mark_stale_devices_offline(HEARTBEAT_OFFLINE_TIMEOUT)
     devices = db.get_online_devices()
     return {"success": True, "count": len(devices), "devices": devices}
 

@@ -32,6 +32,7 @@ CARD_KEY_SEPARATOR = '-'  # 卡密分隔符
 # 设备绑定配置
 MAX_DEVICES_PER_CARD = 1  # 每个卡密最多绑定的设备数量
 VERIFY_INTERVAL_SECONDS = 300  # 验证间隔（秒），防止频繁验证
+HEARTBEAT_OFFLINE_TIMEOUT = 120  # 心跳离线超时（秒），超过此时间未心跳则标记离线
 
 # IP白名单配置
 IP_WHITELIST_ENABLED = os.getenv('IP_WHITELIST_ENABLED', 'False').lower() == 'true'
